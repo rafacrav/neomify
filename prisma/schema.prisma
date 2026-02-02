@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  
+  // Upload info
+  originalFileName String
+  zipPath       String
+  extractedPath String?
+  
+  // User input
+  projectType   String
+  targetAudience String
+  skillLevel    String
+  tone          String
+  goal          String?
+  
+  // AI Analysis
+  aiAnalysis    String?  // JSON string
+  
+  // Landing Page Content
+  landingTemplate String  @default("MINIMAL")
+  headline      String   @default("")
+  description   String   @default("")
+  benefits      String   @default("[]") // JSON array
+  features      String   @default("[]") // JSON array
+  
+  // SEO
+  metaTitle     String   @default("")
+  metaDescription String @default("")
+  keywords      String   @default("[]") // JSON array
+  
+  // Pricing
+  price         Float?
+  currency      String   @default("BRL")
+  
+  // Status
+  processingStatus String @default("PENDING")
+  isPublished   Boolean  @default(false)
+  
+  // Analytics
+  views         Int      @default(0)
+  conversions   Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  purchases     Purchase[]
+  
+  @@index([slug])
+}
+
+model Purchase {
+  id            String   @id @default(cuid())
+  
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id])
+  
+  buyerEmail    String
+  amount        Float
+  currency      String
+  
+  stripePaymentId String @unique
+  downloaded    Boolean  @default(false)
+  downloadedAt  DateTime?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([projectId])
+}
